@@ -1,22 +1,22 @@
 # 🥭 mongoz
 
-> Ad hoc MongoDB server for Node.js
+> Zero Config MongoDB Server for Node.js
 
 ## Why?
 
 [MongoDB](https://www.mongodb.com) is fantastic but setup for small projects can be lots of trouble.
 
-This little package does everything necessary to download and start a fresh mongo server!
+This little package does everything necessary to download and start a fresh MongoDB server!
 
 ## Usage
 
 **Note:** You need to have [Node.js](https://nodejs.org/en/) and [npm](https://docs.npmjs.com/cli/v7/commands/npm) already installed!
 
-**Note:** Make sure there is not already a local mongodb server listening on default port (`2701`). If you do, either stop it or use `PORT` environment variable to change the port.
+**Note:** Make sure there is not already a local mongodb server listening on default port (`2701`). If you do, either stop it or use `MONGO_PORT` environment variable to change the port.
 
 ### Standalone Server
 
-Let's start a fresh mongoz shall we?
+Let's start a fresh db shall we?
 
 ```sh
 npx mongoz
@@ -24,9 +24,9 @@ npx mongoz
 
 It will take few seconds on first time of usage to install and extract mongo server.
 
-### Programmatic Usage
+### Programmatic usage
 
-Do you need a MongoDB server? No problems!
+Do you need a MongoDB server programmatically? No problems!
 
 ```js
 // CommonJS
@@ -37,15 +37,25 @@ import { startMongo } from 'mongoz'
 
 // Install and start listening MongoDB on 127.0.0.1:27017 in background
 await startMongo()
+
+// Or with options
+await startMongo({ port: 27018 })
 ```
 
 When closing server, mongo will also gracefully shutdown with [node-graceful-shutdown](https://www.npmjs.com/package/node-graceful-shutdown).
 
-### In parallel with server
+#### Options
 
-You can also use [concurrently](https://www.npmjs.com/package/concurrently) to start mongo alongside with server:
+- `name`: Unique instance name. Default is `default` (env var: `MONGO_NAME`)
+- `dir`: Data directory to store logs and data. Default is `${os.tmpDir}/mongo`. (env var: `MONGO_DIR`)
+- `port`: Listening port. Default is `27017` (env var: `MONGO_PORT` or `PORT`)
+- `platform`: OS to download binraries for.
 
-`package.json`:
+### In parallel with script
+
+You can also use [concurrently](https://www.npmjs.com/package/concurrently) to start mongo alongside with server:.
+
+Via `package.json`:
 
 ```json
 {
@@ -63,7 +73,7 @@ npx concurrently 'npx mongoz' 'node ./server.mjs'
 
 ## Supported platforms
 
-Windows, Linux and Darwin (Mac) are supported. Check [formula](./src/formula) for details.
+Windows, Linux and Darwin (Mac) are supported. Check [formula](./src/formula.ts) for details.
 
 ## Changing data dir
 

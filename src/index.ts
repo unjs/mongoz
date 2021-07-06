@@ -4,26 +4,45 @@ import fsExtra from 'fs-extra'
 import download from 'download'
 import consola from 'consola'
 import decompress from 'decompress'
-import execa from 'execa'
+import execa, { ExecaChildProcess } from 'execa'
 import ora from 'ora'
 import { onShutdown } from 'node-graceful-shutdown'
 import { mongoFormula as formula } from './formula'
 
-export async function startMongo (opts = { args: null }) {
-  const platformName = process.platform
-  let platform = formula.platforms.find(p => p.name === platformName)
-  if (!platform) {
-    throw new Error(`Platform '${platformName}' is not available for '${formula.name}'`)
+export interface MongoOptions {
+  name?: string
+  platform?: string
+  dir?: string
+  port?: string | number
+  args?: string[]
+}
+
+export interface MongoService {
+  server: ExecaChildProcess
+  close: () => Promise<void>
+}
+
+export async function startMongo(opts: MongoOptions): MongoService {
+  // Apply defaults
+  opts = {
+    name: process.env.MONGO_NAME || 'default',
+    port: process.env.MONGO_PORT || process.env.PORT || formula.port,
+    platform: process.env.MONGO_PLATFORM || process.platform,
+    dir: process.env.MONGO_DIR || path.resolve(os.tmpdir(), 'mongo'),
+    ...opts
   }
 
-  const instanceName = 'default'
-  const appDir = process.env.MONGO_DIR || path.resolve(os.tmpdir(), formula.name)
+  // Find platform
+  const platform = formula.platforms.find(p => p.name === opts.platform)
+  if (!platform) {
+    throw new Error(`Platform '${opts.platform}' is not available for '${formula.name}'`)
+  }
 
   // Resolve paths
-  const dataDir = path.resolve(appDir, 'data', instanceName, formula.name)
-  const logsDir = path.resolve(appDir, 'logs', instanceName, formula.name)
+  const dataDir = path.resolve(opts.dir, 'data', opts.name, formula.name)
+  const logsDir = path.resolve(opts.dir, 'logs', opts.name, formula.name)
   const logFile = path.resolve(logsDir, 'logs.txt')
-  const sourceDir = path.resolve(appDir, 'source', formula.name, formula.version, platform.name)
+  const sourceDir = path.resolve(opts.dir, 'source', formula.name, formula.version, platform.name)
   const sourceFileName = `${formula.name}-${formula.version}-${platform.name}` + path.extname(platform.source)
   const sourceFile = path.resolve(sourceDir, sourceFileName)
   const extractDir = path.resolve(sourceDir, 'unpacked')
@@ -60,14 +79,13 @@ export async function startMongo (opts = { args: null }) {
   consola.info(`Writing logs to: ${logFile}`)
 
   // Port and args
-  const port = process.env.PORT || formula.port
-  const execArgs = formula.execArgs.replace('{port}', port + '').replace('{data}', dataDir).split(' ')
+  const execArgs = formula.execArgs.replace('{port}', opts.port + '').replace('{data}', dataDir).split(' ')
   if (Array.isArray(opts.args)) {
     execArgs.push(...opts.args)
   }
 
   // Start app
-  spinner.info(`Starting ${formula.name} at port ${port}`)
+  spinner.info(`Starting ${formula.name} at port ${opts.port}`)
   const server = execa(execFile, execArgs, {
     stdout,
     stderr
