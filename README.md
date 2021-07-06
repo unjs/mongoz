@@ -49,6 +49,7 @@ When closing server, mongo will also gracefully shutdown with [node-graceful-shu
 - `name`: Unique instance name. Default is `default` (env var: `MONGO_NAME`)
 - `dir`: Data directory to store logs and data. Default is `${os.tmpDir}/mongo`. (env var: `MONGO_DIR`)
 - `port`: Listening port. Default is `27017` (env var: `MONGO_PORT` or `PORT`)
+- `args` Additional arguments passed to [`mongod`](https://docs.mongodb.com/manual/reference/program/mongod/) (should be Array)
 - `platform`: OS to download binraries for.
 
 ### In parallel with script
