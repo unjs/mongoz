@@ -4,7 +4,8 @@ import fsExtra from 'fs-extra'
 import download from 'download'
 import consola from 'consola'
 import decompress from 'decompress'
-import execa, { ExecaChildProcess } from 'execa'
+import type { ExecaChildProcess } from 'execa'
+import execa from 'execa'
 import ora from 'ora'
 import { onShutdown } from 'node-graceful-shutdown'
 import { mongoFormula as formula } from './formula'
@@ -18,11 +19,11 @@ export interface MongoOptions {
 }
 
 export interface MongoService {
-  server: ExecaChildProcess
+  service: ExecaChildProcess
   close: () => Promise<void>
 }
 
-export async function startMongo(opts: MongoOptions): MongoService {
+export async function startMongo (opts: MongoOptions): Promise<MongoService> {
   // Apply defaults
   opts = {
     name: process.env.MONGO_NAME || 'default',
@@ -73,9 +74,9 @@ export async function startMongo(opts: MongoOptions): MongoService {
   await fsExtra.remove(logFile)
 
   // Open logs file
-  let stdout, stderr
   const logsFile = await fsExtra.open(logFile, 'w+')
-  stdout = stderr = logsFile
+  const stdout = logsFile
+  const stderr = logsFile
   consola.info(`Writing logs to: ${logFile}`)
 
   // Port and args
@@ -86,17 +87,17 @@ export async function startMongo(opts: MongoOptions): MongoService {
 
   // Start app
   spinner.info(`Starting ${formula.name} at port ${opts.port}`)
-  const server = execa(execFile, execArgs, {
+  const service = execa(execFile, execArgs, {
     stdout,
     stderr
   })
 
-  const close = () => Promise.resolve(server.cancel())
+  const close = () => Promise.resolve(service.cancel())
 
   onShutdown(() => close())
 
   return {
-    server,
+    service,
     close
   }
 }
