@@ -20,12 +20,13 @@
     "test": "yarn lint"
   },
   "dependencies": {
-    "download": "^8.0.0",
-    "ora": "^5.4.1",
-    "decompress": "^4.2.1",
     "consola": "^2.15.3",
+    "decompress": "^4.2.1",
+    "download": "^8.0.0",
     "fs-extra": "^10.0.0",
-    "node-graceful-shutdown": "^1.1.0"
+    "mongodb-download-url": "^1.4.1",
+    "node-graceful-shutdown": "^1.1.0",
+    "ora": "^5.4.1"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^6.0.1",

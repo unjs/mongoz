@@ -8,6 +8,7 @@ import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import ora from 'ora'
 import { onShutdown } from 'node-graceful-shutdown'
+import getURL from 'mongodb-download-url'
 import { mongoFormula as formula } from './formula'
 
 export interface MongoOptions {
@@ -33,18 +34,15 @@ export async function startMongo (opts: MongoOptions): Promise<MongoService> {
     ...opts
   }
 
-  // Find platform
-  const platform = formula.platforms.find(p => p.name === opts.platform)
-  if (!platform) {
-    throw new Error(`Platform '${opts.platform}' is not available for '${formula.name}'`)
-  }
+  // Find source
+  const source = await getURL()
 
   // Resolve paths
   const dataDir = path.resolve(opts.dir, 'data', opts.name, formula.name)
   const logsDir = path.resolve(opts.dir, 'logs', opts.name, formula.name)
   const logFile = path.resolve(logsDir, 'logs.txt')
-  const sourceDir = path.resolve(opts.dir, 'source', formula.name, formula.version, platform.name)
-  const sourceFileName = `${formula.name}-${formula.version}-${platform.name}` + path.extname(platform.source)
+  const sourceDir = path.resolve(opts.dir, 'source', formula.name, formula.version, source.platform)
+  const sourceFileName = `${formula.name}-${formula.version}-${source.platform}` + path.extname(source.url)
   const sourceFile = path.resolve(sourceDir, sourceFileName)
   const extractDir = path.resolve(sourceDir, 'unpacked')
   const execFile = path.resolve(extractDir, formula.exec)
@@ -60,7 +58,7 @@ export async function startMongo (opts: MongoOptions): Promise<MongoService> {
     if (!fsExtra.existsSync(sourceFile)) {
       const dlMessage = `Downloading ${sourceFileName}`
       spinner.start(dlMessage + '...')
-      const res = download(platform.source, sourceDir, { filename: sourceFileName })
+      const res = download(source.url, sourceDir, { filename: sourceFileName })
       res.on('downloadProgress', (e) => {
         spinner.text = `${dlMessage} | ${Math.round(e.percent * 100)}%`
       })
