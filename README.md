@@ -12,7 +12,7 @@ This little package does everything necessary to download and start a fresh Mong
 
 **Note:** You need to have [Node.js](https://nodejs.org/en/) and [npm](https://docs.npmjs.com/cli/v7/commands/npm) already installed!
 
-**Note:** Make sure there is not already a local mongodb server listening on default port (`2701`). If you do, either stop it or use `MONGO_PORT` environment variable to change the port.
+**Note:** Make sure there is not already a local mongodb server listening on default port (`27017`). If you do, either stop it or use `MONGO_PORT` environment variable to change the port.
 
 ### Standalone Server
 
